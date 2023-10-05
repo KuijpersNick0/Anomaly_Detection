@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # image_path
-img_path="../data/data_default_processed/2.F.3_G043_Top_PP2.jpg"
+img_path="../data/data_default_processed/2.F.3_G043_Bottom_PP2.jpg"
 
 # read image
 img_raw = cv2.imread(img_path)
@@ -24,9 +24,9 @@ print(ROIs)
 # crop_component = "U600"
 # crop_component = "U701"
 # crop_component = "2F3_U904Ux"
-crop_component = "2F3_U911Ux"
+# crop_component = "2F3_U911Ux"
 # crop_component = "Q102"
-# crop_component = "U901_AL_AH"
+crop_component = "U901_AL_AH"
 # crop_component = "U608"
 # crop_component = "U103"
 

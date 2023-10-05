@@ -14,8 +14,8 @@ def execute_image_extraction(image_folder, image_folder_default_processed):
 
 def execute_train_CNN(image_path):
     # Import and execute component_matching.py
-    import train_CNN
-    train_CNN.main(image_path)
+    import CNN
+    # CNN.main(image_path)
 
 if __name__ == "__main__":
     # Camera calibration
