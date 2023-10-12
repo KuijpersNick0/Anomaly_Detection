@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # image_path
-img_path="../data/data_default_processed/2.F.2_G316_Top_PP2.jpg"
+img_path="../data/data_default_processed/2.F.2_G244 - 5B4A11E332_Bottom_PP2.jpg"
 
 # read image
 img_raw = cv2.imread(img_path)
@@ -31,8 +31,11 @@ print(ROIs)
 # crop_component = "U103"
 # crop_component = "J704"
 # crop_component = "BT100"
-crop_component = "U911U5"
-
+# crop_component = "U911U5"
+# crop_component = "U904U5"
+# crop_component = "U604"
+# crop_component = "J703"
+# crop_component = "U7"
 
 #loop over every bounding box save in array "ROIs"
 for rect in ROIs:
