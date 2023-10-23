@@ -11,243 +11,205 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image
 
-# # applying transforms to the data
-# image_transforms = {
-#     'train': transforms.Compose([
-#         transforms.RandomResizedCrop(size=256, scale=(0.8,1.0)),
-#         transforms.RandomRotation(degrees=15),
-#         transforms.RandomHorizontalFlip(),
-#         transforms.CenterCrop(size=224),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.485, 0.456, 0.406],
-#                              [0.229, 0.224, 0.225])
-#     ]),
-#     'valid': transforms.Compose([
-#         transforms.Resize(size=256),
-#         transforms.CenterCrop(size=224),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.485, 0.456, 0.406],
-#                              [0.229, 0.224, 0.225])
-#     ]),
-#     'test': transforms.Compose([
-#         transforms.Resize(size=256),
-#         transforms.CenterCrop(size=224),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.485, 0.456, 0.406],
-#                              [0.229, 0.224, 0.225])
-#     ])
-# }
+from random_sampler import get_weighted_data_loaders
 
-# # Load data
-# # Set train, valid, and test directory
-# train_directory = 'food-11k-sub/train'
-# valid_directory = 'food-11k-sub/valid'
-# test_directory = 'food-11k-sub/test'
+# Import loaders 
+train_loader, valid_loader, train_size, valid_size = get_weighted_data_loaders("../data/CNN_images/Run1/", 8)
 
-# # batch size
-# bs = 32
+# applying transforms to the data
+image_transforms = {
+    'train': transforms.Compose([
+        transforms.Resize(size=256),
+        transforms.CenterCrop(size=224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
+    ]),
+    'valid': transforms.Compose([
+        transforms.Resize(size=256),
+        transforms.CenterCrop(size=224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
+    ])
+}
 
-# # number of epochs
-# epochs = 20
+# number of epochs
+epochs = 20
 
-# # number of classes
-# num_classes = 11
+# number of classes
+num_classes = 16
 
-# # device 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# # Load data from directory
-# data = {
-#     'train': datasets.ImageFolder(root=train_directory,
-#                                   transform=image_transforms['train']),
-#     'valid': datasets.ImageFolder(root=valid_directory,
-#                                   transform=image_transforms['valid']),
-#     'test': datasets.ImageFolder(root=test_directory,
-#                                  transform=image_transforms['test'])
-# }
+# device 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# # Get a mapping of the indices to the class names, in order to see the output classes of the test images.
-# idx_to_class = {v: k for k, v in data['train'].class_to_idx.items()}
-# print(idx_to_class)
+# load pretrained resnet50, 152 bigger but better perf should try
+# Maybe try DenseNet after this :DenseNet161_Weights.IMAGENET1K_V1
+resnet_50 = models.resnet50(weights="IMAGENET1K_V2")
 
-# # size of data, to be used for calculating Averge Loss and Accuracy
-# train_data_size = len(data['train'])
-# valid_data_size = len(data['valid'])
-# test_data_size = len(data['test'])
+# Freeze model parameters, coz we are fine-tuning
+for param in resnet_50.parameters():
+  param.requires_grad = False
 
-# # Create iterators for the Data loaded using DataLoader module
-# train_data = DataLoader(data['train'], batch_size=bs, shuffle=True)
-# valid_data = DataLoader(data['valid'], batch_size=bs, shuffle=True)
-# test_data = DataLoader(data['test'], batch_size=bs, shuffle=True)
+# change the final layer of Resnet50 Model for fine-tuning
+fc_inputs = resnet_50.fc.in_features
 
-# train_data_size, valid_data_size, test_data_size
+resnet_50.fc = nn.Sequential(
+    nn.Linear(fc_inputs, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4), 
+    nn.Linear(256, 16), # since we have 16 classes
+    nn.LogSoftmax(dim=1) # for using NLLLoss()
+)
 
-# # load pretrained resnet50, 152 bigger but better perf should try
-# # Maybe try DenseNet after this :DenseNet161_Weights.IMAGENET1K_V1
-# resnet_50 = models.resnet50(weights="IMAGENET1K_V2")
+# convert model to GPU
+resnet_50 = resnet_50.to(device)
 
-# # Freeze model parameters, coz we are fine-tuning
-# for param in resnet_50.parameters():
-#   param.requires_grad = False
+# define optimizer and loss function
+loss_func = nn.NLLLoss()
+optimizer = optim.Adam(resnet_50.parameters())
 
-# # change the final layer of Resnet50 Model for fine-tuning
-# fc_inputs = resnet_50.fc.in_features
-
-# resnet_50.fc = nn.Sequential(
-#     nn.Linear(fc_inputs, 256),
-#     nn.ReLU(),
-#     nn.Dropout(0.4), 
-#     nn.Linear(256, 2), # since we have 2 classes: Bad, Good
-#     nn.LogSoftmax(dim=1) # for using NLLLoss()
-# )
-
-# # convert model to GPU
-# resnet_50 = resnet_50.to(device)
-
-# # define optimizer and loss function
-# loss_func = nn.NLLLoss()
-# optimizer = optim.Adam(resnet_50.parameters())
-
-# def train_and_validate(model, loss_criterion, optimizer, epochs=25):
-#     '''
-#     Function to train and validate
-#     Parameters
-#         :param model: Model to train and validate
-#         :param loss_criterion: Loss Criterion to minimize
-#         :param optimizer: Optimizer for computing gradients
-#         :param epochs: Number of epochs (default=25)
+def train_and_validate(model, loss_criterion, optimizer, epochs=25):
+    '''
+    Function to train and validate
+    Parameters
+        :param model: Model to train and validate
+        :param loss_criterion: Loss Criterion to minimize
+        :param optimizer: Optimizer for computing gradients
+        :param epochs: Number of epochs (default=25)
   
-#     Returns
-#         model: Trained Model with best validation accuracy
-#         history: (dict object): Having training loss, accuracy and validation loss, accuracy
-#     '''
+    Returns
+        model: Trained Model with best validation accuracy
+        history: (dict object): Having training loss, accuracy and validation loss, accuracy
+    '''
     
-#     start = time.time()
-#     history = []
-#     best_acc = 0.0
+    start = time.time()
+    history = []
+    best_acc = 0.0
 
-#     for epoch in range(epochs):
-#         epoch_start = time.time()
-#         print("Epoch: {}/{}".format(epoch+1, epochs))
+    for epoch in range(epochs):
+        epoch_start = time.time()
+        print("Epoch: {}/{}".format(epoch+1, epochs))
         
-#         # Set to training mode
-#         model.train()
+        # Set to training mode
+        model.train()
         
-#         # Loss and Accuracy within the epoch
-#         train_loss = 0.0
-#         train_acc = 0.0
+        # Loss and Accuracy within the epoch
+        train_loss = 0.0
+        train_acc = 0.0
         
-#         valid_loss = 0.0
-#         valid_acc = 0.0
+        valid_loss = 0.0
+        valid_acc = 0.0
         
-#         for i, (inputs, labels) in enumerate(train_data):
+        for i, (inputs, labels) in enumerate(train_loader):
 
-#             inputs = inputs.to(device)
-#             labels = labels.to(device)
+            inputs = inputs.to(device)
+            labels = labels.to(device)
             
-#             # Clean existing gradients
-#             optimizer.zero_grad()
+            # Clean existing gradients
+            optimizer.zero_grad()
             
-#             # Forward pass - compute outputs on input data using the model
-#             outputs = model(inputs)
+            # Forward pass - compute outputs on input data using the model
+            outputs = model(inputs)
             
-#             # Compute loss
-#             loss = loss_criterion(outputs, labels)
+            # Compute loss
+            loss = loss_criterion(outputs, labels.long())
             
-#             # Backpropagate the gradients
-#             loss.backward()
+            # Backpropagate the gradients
+            loss.backward()
             
-#             # Update the parameters
-#             optimizer.step()
+            # Update the parameters
+            optimizer.step()
             
-#             # Compute the total loss for the batch and add it to train_loss
-#             train_loss += loss.item() * inputs.size(0)
+            # Compute the total loss for the batch and add it to train_loss
+            train_loss += loss.item() * inputs.size(0)
             
-#             # Compute the accuracy
-#             ret, predictions = torch.max(outputs.data, 1)
-#             correct_counts = predictions.eq(labels.data.view_as(predictions))
+            # Compute the accuracy
+            ret, predictions = torch.max(outputs.data, 1)
+            correct_counts = predictions.eq(labels.data.view_as(predictions))
             
-#             # Convert correct_counts to float and then compute the mean
-#             acc = torch.mean(correct_counts.type(torch.FloatTensor))
+            # Convert correct_counts to float and then compute the mean
+            acc = torch.mean(correct_counts.type(torch.FloatTensor))
             
-#             # Compute total accuracy in the whole batch and add to train_acc
-#             train_acc += acc.item() * inputs.size(0)
+            # Compute total accuracy in the whole batch and add to train_acc
+            train_acc += acc.item() * inputs.size(0)
             
-#             #print("Batch number: {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}".format(i, loss.item(), acc.item()))
+            #print("Batch number: {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}".format(i, loss.item(), acc.item()))
 
             
-#         # Validation - No gradient tracking needed
-#         with torch.no_grad():
+        # Validation - No gradient tracking needed
+        with torch.no_grad():
 
-#             # Set to evaluation mode
-#             model.eval()
+            # Set to evaluation mode
+            model.eval()
 
-#             # Validation loop
-#             for j, (inputs, labels) in enumerate(valid_data):
-#                 inputs = inputs.to(device)
-#                 labels = labels.to(device)
+            # Validation loop
+            for j, (inputs, labels) in enumerate(valid_loader):
+                inputs = inputs.to(device)
+                labels = labels.to(device)
 
-#                 # Forward pass - compute outputs on input data using the model
-#                 outputs = model(inputs)
+                # Forward pass - compute outputs on input data using the model
+                outputs = model(inputs)
 
-#                 # Compute loss
-#                 loss = loss_criterion(outputs, labels)
+                # Compute loss
+                loss = loss_criterion(outputs, labels)
 
-#                 # Compute the total loss for the batch and add it to valid_loss
-#                 valid_loss += loss.item() * inputs.size(0)
+                # Compute the total loss for the batch and add it to valid_loss
+                valid_loss += loss.item() * inputs.size(0)
 
-#                 # Calculate validation accuracy
-#                 ret, predictions = torch.max(outputs.data, 1)
-#                 correct_counts = predictions.eq(labels.data.view_as(predictions))
+                # Calculate validation accuracy
+                ret, predictions = torch.max(outputs.data, 1)
+                correct_counts = predictions.eq(labels.data.view_as(predictions))
 
-#                 # Convert correct_counts to float and then compute the mean
-#                 acc = torch.mean(correct_counts.type(torch.FloatTensor))
+                # Convert correct_counts to float and then compute the mean
+                acc = torch.mean(correct_counts.type(torch.FloatTensor))
 
-#                 # Compute total accuracy in the whole batch and add to valid_acc
-#                 valid_acc += acc.item() * inputs.size(0)
+                # Compute total accuracy in the whole batch and add to valid_acc
+                valid_acc += acc.item() * inputs.size(0)
 
-#                 #print("Validation Batch number: {:03d}, Validation: Loss: {:.4f}, Accuracy: {:.4f}".format(j, loss.item(), acc.item()))
+                #print("Validation Batch number: {:03d}, Validation: Loss: {:.4f}, Accuracy: {:.4f}".format(j, loss.item(), acc.item()))
             
-#         # Find average training loss and training accuracy
-#         avg_train_loss = train_loss/train_data_size 
-#         avg_train_acc = train_acc/train_data_size
+        # Find average training loss and training accuracy
+        avg_train_loss = train_loss/train_size 
+        avg_train_acc = train_acc/train_size
 
-#         # Find average training loss and training accuracy
-#         avg_valid_loss = valid_loss/valid_data_size 
-#         avg_valid_acc = valid_acc/valid_data_size
+        # Find average training loss and training accuracy
+        avg_valid_loss = valid_loss/valid_size 
+        avg_valid_acc = valid_acc/valid_size
 
-#         history.append([avg_train_loss, avg_valid_loss, avg_train_acc, avg_valid_acc])
+        history.append([avg_train_loss, avg_valid_loss, avg_train_acc, avg_valid_acc])
                 
-#         epoch_end = time.time()
+        epoch_end = time.time()
     
-#         print("Epoch : {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}%, \n\t\tValidation : Loss : {:.4f}, Accuracy: {:.4f}%, Time: {:.4f}s".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100, epoch_end-epoch_start))
+        print("Epoch : {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}%, \n\t\tValidation : Loss : {:.4f}, Accuracy: {:.4f}%, Time: {:.4f}s".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100, epoch_end-epoch_start))
         
-#         # Save if the model has best accuracy till now
-#         # torch.save(model, 'model_'+str(epoch)+'.pt')
+        # Save if the model has best accuracy till now
+        # torch.save(model, 'model_'+str(epoch)+'.pt')
             
-#     return model, history
+    return model, history
 
-# num_epochs = 25
-# trained_model, history = train_and_validate(resnet_50, loss_func, optimizer, num_epochs)
-# torch.save(history, 'history.pt')
+num_epochs = 25
+trained_model, history = train_and_validate(resnet_50, loss_func, optimizer, num_epochs)
+torch.save(history, 'history.pt')
 
-# torch.save(trained_model,'trained_model.pt')
+torch.save(trained_model,'trained_model.pt')
 
-# history = np.array(history)
-# plt.plot(history[:,0:2])
-# plt.legend(['Tr Loss', 'Val Loss'])
-# plt.xlabel('Epoch Number')
-# plt.ylabel('Loss')
-# plt.ylim(0,1)
-# plt.savefig('loss_curve.png')
-# plt.show()
+history = np.array(history)
+plt.plot(history[:,0:2])
+plt.legend(['Tr Loss', 'Val Loss'])
+plt.xlabel('Epoch Number')
+plt.ylabel('Loss')
+plt.ylim(0,1)
+plt.savefig('loss_curve.png')
+plt.show()
 
-# plt.plot(history[:,2:4])
-# plt.legend(['Tr Accuracy', 'Val Accuracy'])
-# plt.xlabel('Epoch Number')
-# plt.ylabel('Accuracy')
-# plt.ylim(0,1)
-# plt.savefig('_accuracy_curve.png')
-# plt.show()
+plt.plot(history[:,2:4])
+plt.legend(['Tr Accuracy', 'Val Accuracy'])
+plt.xlabel('Epoch Number')
+plt.ylabel('Accuracy')
+plt.ylim(0,1)
+plt.savefig('_accuracy_curve.png')
+plt.show()
 
 # def computeTestSetAccuracy(model, loss_criterion):
 #     '''
@@ -337,8 +299,8 @@ from PIL import Image
 
 
 
-# def train_CNN(images):
-#     return None
+def train_CNN(images):
+    return None
 
-# def main(images):
-#     return None
+def main(images):
+    return None

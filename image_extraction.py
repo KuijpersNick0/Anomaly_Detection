@@ -7,9 +7,10 @@ import json
 from tqdm.notebook import tqdm
 import pandas as pd
  
-default_csv_path = '../data/default_excell/default.csv'
+default_csv_path = '../data/default_excell/Default.csv'
+csv_file = pd.read_csv(default_csv_path)
 
-def find_match(image, template, threshold=0.90):
+def find_match(image, template, threshold=0.20):
     # Apply normalized cross-correlation between the ROI and the template
     result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
     # cv2.normalize( result, result, 0, 1, cv2.NORM_MINMAX, -1 )
@@ -21,19 +22,17 @@ def find_match(image, template, threshold=0.90):
     if max_val >= threshold:
         # cv2.rectangle(img_display, matchLoc, (matchLoc[0] + template.shape[0], matchLoc[1] + template.shape[1]), (0,0,0), 2, 8, 0 ) 
         img_component = image[matchLoc[1]:matchLoc[1] + template.shape[0], matchLoc[0]:matchLoc[0] + template.shape[1]] 
-        # cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-        cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
-
-        cv2.imshow("Display window", image)
-        cv2.waitKey(0)
-        cv2.imshow("Display result", img_component)
-        cv2.waitKey(0)
+        # cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
+        # cv2.imshow("Display window", image)
+        # cv2.waitKey(0)
+        # cv2.imshow("Display result", img_component)
+        # cv2.waitKey(0)
         print("Components matching found")
         return img_component
     else:
         return "Error finding matching"
 
-def find_match_U911(image, template, version, threshold=0.90):
+def find_match_U911(image, template, version, threshold=0.30):
     # Apply normalized cross-correlation between the ROI and the template
     result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
     # cv2.normalize( result, result, 0, 1, cv2.NORM_MINMAX, -1 )
@@ -42,7 +41,7 @@ def find_match_U911(image, template, version, threshold=0.90):
     matchLoc = min_loc     
     min_x = matchLoc[0]
 
-    print(max_val)
+    print("U911U5")
     if version != "2E4":
         if max_val >= threshold:
             for loc in zip(*np.where(result >= threshold)[::-1]):
@@ -53,12 +52,12 @@ def find_match_U911(image, template, version, threshold=0.90):
             # cv2.rectangle(img_display, matchLoc, (matchLoc[0] + template.shape[0], matchLoc[1] + template.shape[1]), (0,0,0), 2, 8, 0 ) 
             img_component = image[matchLoc[1]:matchLoc[1] + template.shape[0], matchLoc[0]:matchLoc[0] + template.shape[1]] 
             # cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-            cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
+            # cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
 
-            cv2.imshow("Display window", image)
-            cv2.waitKey(0)
-            cv2.imshow("Display result", img_component)
-            cv2.waitKey(0)
+            # cv2.imshow("Display window", image)
+            # cv2.waitKey(0)
+            # cv2.imshow("Display result", img_component)
+            # cv2.waitKey(0)
             print("Components matching found")
             return img_component
         else:
@@ -68,48 +67,47 @@ def find_match_U911(image, template, version, threshold=0.90):
             # cv2.rectangle(img_display, matchLoc, (matchLoc[0] + template.shape[0], matchLoc[1] + template.shape[1]), (0,0,0), 2, 8, 0 ) 
             img_component = image[matchLoc[1]:matchLoc[1] + template.shape[0], matchLoc[0]:matchLoc[0] + template.shape[1]] 
             # cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-            cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
+            # cv2.namedWindow("Display result", cv2.WINDOW_NORMAL)
 
-            cv2.imshow("Display window", image)
-            cv2.waitKey(0)
-            cv2.imshow("Display result", img_component)
-            cv2.waitKey(0)
+            # cv2.imshow("Display window", image)
+            # cv2.waitKey(0)
+            # cv2.imshow("Display result", img_component)
+            # cv2.waitKey(0)
             print("Components matching found")
             return img_component
         else:
             return "Error finding matching for U911U5 version 2E4"
 
-def find_match_U904(image, template, threshold=0.90):
+def find_match_U904(image, template, threshold=0.30):
     # Apply normalized cross-correlation between the ROI and the template
     result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
     # cv2.normalize( result, result, 0, 1, cv2.NORM_MINMAX, -1 )
     loc = np.where(result >= threshold)
     rectangles = []
+    print("U904U3")
     for pt in zip(*loc[::-1]):
         rectangles.append(image[pt[1]:pt[1]+template.shape[0], pt[0]:pt[0]+template.shape[1]])
 
-    if len(rectangles)==5:
-        return rectangles
-    else:
-        return "Error finding matching for U904"
+    return rectangles
 
 def save_image(new_image, component, version, board_id):
-    # Based on CSV file, save the image in the right folder
-    csv_file = pd.read_csv(default_csv_path, sep=',')
-    try:
-        # Check if component, version, and orientation match in the CSV file
-        match = csv_file[(csv_file['Component'] == component) & (csv_file['Version'] == version)]
-        if not match.empty:
-            folder = component+'_Def'
-        else:
-            folder = component
+    # Based on CSV file, save the image in the right folder 
+    component = str(component)
+    version = str(version)
+    board_id = 'G' + str(board_id)
 
-        # Save the image in the appropriate folder
-        save_path = f'../data/CNN_Images/Run1/{folder}/{component}_{version}_{board_id}.jpg'
-        cv2.imwrite(save_path, new_image)
-        return "Saved"
-    except:
-        return "Error saving image" 
+    # Check if component and version match in the CSV file
+    match = csv_file[(csv_file['Component'] == component) & (csv_file['Version'] == version) & (csv_file['Id'] == board_id)]
+    print(match)
+    if not match.empty:
+        folder = component+'_Def'
+    else:
+        folder = component
+    print(folder + " folder")
+    # Save the image in the appropriate folder
+    save_path = f'../data/CNN_images/Run1/{folder}/{component}_{version}_{board_id}.jpg'
+    cv2.imwrite(save_path, new_image) 
+    return "Saved" 
 
 def get_template_image(component):
     # Load template images
@@ -119,9 +117,9 @@ def get_template_image(component):
         if component in file:
             template_path = os.path.join(template_folder, file)
             template_image = cv2.imread(template_path)
-            cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-            cv2.imshow("Display window", template_image)
-            cv2.waitKey(0)
+            # cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
+            # cv2.imshow("Display window", template_image)
+            # cv2.waitKey(0)
             return template_image
 
 def image_extraction(image_path):
@@ -129,10 +127,8 @@ def image_extraction(image_path):
     # List all files in the image folder 
     for folder in os.listdir(image_path):
         folder_path = os.path.join(image_path, folder)
-        if os.path.isdir(folder_path):
-            status_bar = tqdm(total=len(folder_path))
-            for file in os.listdir(folder_path):
-                status_bar.update() 
+        if os.path.isdir(folder_path): 
+            for file in os.listdir(folder_path): 
                 file_path = os.path.join(folder_path, file)
                 if os.path.isfile(file_path):
                     # print(file_path)        
@@ -144,21 +140,21 @@ def image_extraction(image_path):
                         board_id = match.group(5)
                         # print(f"Version: {version}, Component: {component}, Orientation: {orientation}, Board id: {board_id}")
                         template = get_template_image(component)
+                        image = cv2.imread(file_path)
                         if (component == "U911U5"):
+                            # continue
                             # Chop 1 le plus à gauche (4 pins alors qu'2E4 pas 4 pins plus à gauche)
-                            new_image = find_match_U911(file_path, template, version)
-                            save_image(new_image, component, version, board_id)    
+                            new_image = find_match_U911(image, template, version)
+                            print(save_image(new_image, component, version, board_id))
                         if (component == "U904U3"):
+                            # continue
                             # Chop les 3 et les mettre ds le bon ordre ds le folder
-                            new_image = find_match_U904(file_path, template)
-                            save_image(new_image, component, version, board_id)
+                            new_image_list = find_match_U904(image, template)
+                            for i, new_image in enumerate(new_image_list):
+                                print(save_image(new_image, component, version, board_id)) 
                         else:
-                            new_image = find_match(file_path, template)
-                            save_image(new_image, component, version, board_id)
-
-
-                    
-                    
+                            new_image = find_match(image, template)
+                            print(save_image(new_image, component, version, board_id))
     return None
     
 
