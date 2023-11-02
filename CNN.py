@@ -13,6 +13,11 @@ from PIL import Image
 
 from random_sampler import get_weighted_data_loaders
 
+from numba import cuda 
+
+# device.reset()
+device = cuda.get_current_device()
+print(device)
 # Import loaders 
 train_loader, valid_loader, train_size, valid_size = get_weighted_data_loaders("../data/CNN_images/Run1/", 8)
 
@@ -39,9 +44,6 @@ epochs = 20
 
 # number of classes
 num_classes = 16
-
-# device 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # load pretrained resnet50, 152 bigger but better perf should try
 # Maybe try DenseNet after this :DenseNet161_Weights.IMAGENET1K_V1

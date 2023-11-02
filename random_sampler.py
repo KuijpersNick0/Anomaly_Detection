@@ -66,11 +66,21 @@ def get_weighted_data_loaders(root_dir, batch_size):
         replacement=True
     )
 
+    print(len(train_class_weights_all))
+    print(len(train_dataset))
+
+    print(len(train_target_list))
+    print(len(torch.unique(train_target_list)))
+
+    print(len(train_weighted_sampler))
+
+
     # Create a sampler for the validation dataset
     val_sampler = SubsetRandomSampler(val_dataset.indices)
 
     # Create data loaders for train and validation datasets
-    train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=batch_size, sampler=train_weighted_sampler)
+    # train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=batch_size, sampler=train_weighted_sampler)
+    train_loader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=batch_size)
     val_loader = DataLoader(dataset=val_dataset, shuffle=False, batch_size=batch_size, sampler=val_sampler)
     
     return train_loader, val_loader, train_size, val_size
