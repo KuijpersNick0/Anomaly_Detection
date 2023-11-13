@@ -13,15 +13,21 @@ def analyze_image():
     data = request.get_json()
     image_path = data.get('path').get('path')
     
-    # Find image
+    # 1. Find image
     folder_name = image_path.split('_')[0]
     base_path = f'../../data/CNN_images/Run1/{folder_name}/'
     real_image_path = base_path + image_path
 
-    # Load model and execute inference
+    # 2. Execute images extraction
+        # To be modified
+        # Returns new image path (and bounding boxes?)
+
+    # 3. Load model and execute inference 
+        # Should be on each image from step 2, append to a list the results
     model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt', map_location='cpu')
     predictions = predict(model, real_image_path)
-    # Return results
+    
+    # 4. Return results
     analysis_results = {'result': 'Analysis complete', 'image_path': image_path, 'predictions': predictions}
     return jsonify(analysis_results)
 
