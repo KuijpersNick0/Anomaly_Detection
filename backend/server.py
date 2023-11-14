@@ -6,6 +6,7 @@ import pandas as pd
 
 from inference import predict
 from inference_image_extractor import main
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -42,6 +43,28 @@ def analyze_image():
     # 4. Return results
     analysis_results = {'result': 'Analysis complete', 'image_path': image_path, 'predictions': predictions}
     return jsonify(analysis_results)
+
+
+@app.route('/send-feedback', methods=['POST'])
+def send_feedback():
+    try:
+        data = request.json
+        confirmation = data.get('confirmation')
+        analysis_data = data.get('analysisData')
+
+        # Save the updated data to a JSON file
+        feedback_dir = 'feedback'
+        if not os.path.exists(feedback_dir):
+            os.makedirs(feedback_dir)
+        feedback_file = os.path.join(feedback_dir, 'feedback.json')
+        with open(feedback_file, 'w') as f:
+            json.dump({'confirmation': confirmation, 'analysis_data': analysis_data}, f)
+
+        return jsonify({'message': 'Feedback received successfully'})
+    except Exception as e:
+        print(f"Error sending feedback: {str(e)}")
+        return jsonify({'error': 'Failed to send feedback'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

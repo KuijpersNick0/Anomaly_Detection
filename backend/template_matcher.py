@@ -25,10 +25,10 @@ def find_template_match(input_image_path, template_image_path, to_save_im_path):
     cropped_image = input_image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
 
     # Display input image with best match highlighted
-    cv2.rectangle(input_image, top_left, bottom_right, (0, 0, 255), 2)
-    cv2.imshow('Input Image', input_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.rectangle(input_image, top_left, bottom_right, (0, 0, 255), 2)
+    # cv2.imshow('Input Image', input_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     cv2.imwrite(to_save_im_path, cropped_image)
 

@@ -1,29 +1,30 @@
 import React, { useState } from 'react';
-import UploadImage from './UploadImage'; 
+import UploadImage from './UploadImage';
+import LoadingScreen from './LoadingScreen';
+import AnalysisResults from './AnalysisResults';
 
 const App = () => {
   const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Function to handle analysis completion
   const handleAnalysisComplete = (data) => {
     setAnalysisData(data);
+    setLoading(false);
+  };
+
+  const handleFileUpload = () => {
+    setLoading(true);
   };
 
   return (
     <div className="App">
       <h1>Railnova PCB defect detection app</h1>
 
-      {/* UploadImage Component */}
-      <UploadImage onUploadComplete={handleAnalysisComplete} />
+      <UploadImage onFileUpload={handleFileUpload} onUploadComplete={handleAnalysisComplete} />
 
-      {/* Display analysis results if available */}
-      {analysisData && (
-        <div>
-          <h2>Analysis Results</h2>
-          <pre>{JSON.stringify(analysisData, null, 2)}</pre>
-        </div>
-      )}
+      <LoadingScreen loading={loading} />
 
+      <AnalysisResults analysisData={analysisData} />
     </div>
   );
 };
