@@ -1,0 +1,50 @@
+.analysis-results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .image-container {
+    margin-bottom: 20px;
+    text-align: center; /* Center text content under the original image */
+  }
+  
+  .analyzed-images-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .analyzed-image-container {
+    margin: 0 10px;
+    text-align: center; /* Center text content under each analyzed image */
+  }
+  
+  /* Set the maximum width for the images */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Set specific size for the original image if needed */
+  .image-container img {
+    max-width: 80%; /* Adjust the percentage based on your design */
+  }
+  
+  /* Set specific size for the analyzed images */
+  .analyzed-image-container {
+    width: 200px; /* Fixed width for all analyzed images */
+  }
+  
+  /* Optional: Add styles for prediction text and radio buttons */
+  .analyzed-image-container pre {
+    margin-top: 10px; /* Add some space between the image and prediction text */
+  }
+  
+  /* You can further style the radio buttons if needed */
+  .analyzed-image-container label {
+    display: block; /* Display each label on a new line */
+    margin-top: 5px; /* Add space between each label */
+  }
+  

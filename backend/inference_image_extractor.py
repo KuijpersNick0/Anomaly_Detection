@@ -16,7 +16,7 @@ from template_matcher import find_template_match
 
 df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F3.csv')
 
-output_folder = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3'
+output_folder = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/'
 
 # Define the template matching method
 def get_matching_method():
@@ -123,10 +123,11 @@ def process_components(image, components_to_process, df_main_board, transformati
             roi = image[roi_top_left[1]:roi_bottom_right[1], roi_top_left[0]:roi_bottom_right[0]]
 
             # Create a unique filename for each component
-            filename = f'{output_folder}/image_matched_2F3_{modified_comp_string}_{orientation}_{board_id}.jpg'
+            filename = f'{output_folder}/image_smaller_2F3_{modified_comp_string}_{orientation}_{board_id}.jpg'
 
             # Save the ROI with the rectangle
             cv2.imwrite(filename, roi)
+            print("Saved smaller not cropped tottally image to {}".format(filename))
             components_processed.append([modified_comp_string, filename, roi_top_left, roi_bottom_right])
         else:
             print(f"Warning: ROI for component {component} is outside image bounds.")
@@ -213,9 +214,11 @@ def main(image_path, df_main_board):
     component_processed = process_images(image_path, df_main_board)
     for component in component_processed: 
         input_image_path = component[1]
+        print(component)
         template_image_path = f'../../data/template_images/matching_templates/{component[0]}.jpg'
-        to_save_im_path = f'{output_folder}/cropped_images/image_matched_2F3_{component[0]}.jpg'
-        cropped_image = find_template_match(input_image_path, template_image_path, to_save_im_path)
+        to_save_im_path = f'{output_folder}/cropped_images/{component[0]}.jpg'
+        find_template_match(input_image_path, template_image_path, to_save_im_path)
+        print("Saved cropped image to {}".format(to_save_im_path))
         cropped_images.append([to_save_im_path, component[0]])
     
     return cropped_images

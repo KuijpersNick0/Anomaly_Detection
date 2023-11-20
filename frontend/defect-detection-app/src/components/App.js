@@ -14,6 +14,7 @@ const App = () => {
 
   const handleFileUpload = () => {
     setLoading(true);
+    setAnalysisData(null)
   };
 
   return (

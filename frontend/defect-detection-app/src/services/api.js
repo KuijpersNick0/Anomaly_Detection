@@ -20,13 +20,13 @@ const api = {
 
   // Send feedback to the backend about the analysis results
   // sendFeedback: async (analysisId, confirmation) => {
-  sendFeedback: async (confirmation, analysisData) => {
+  sendFeedback: async (confirmations, analysisData) => {
     const response = await fetch(`${BASE_URL}/send-feedback`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({confirmation, analysisData }),
+      body: JSON.stringify({confirmations, analysisData }),
     });
 
     if (!response.ok) {

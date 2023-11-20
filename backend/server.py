@@ -1,12 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json 
 import torch
 import pandas as pd
+import os
 
 from inference import predict
 from inference_image_extractor import main
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -22,8 +22,6 @@ def analyze_image():
     base_path = '../../data/data_default_processed/'
     real_image_path = base_path + image_path
 
-    print(real_image_path)
-
     # 2. Execute images extraction
         # To be modified
         # Returns new image path (and bounding boxes?)
@@ -34,22 +32,40 @@ def analyze_image():
 
     # 3. Load model and execute inference 
         # Should be on each image from step 2, append to a list the results
+    all_cropped_images = []
     model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt', map_location='cpu')
     for cropped_image_path in cropped_images_path:
         print(cropped_image_path)
+        all_cropped_images.append(cropped_image_path[1])
+        # cropped_image_path[0] = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/' + cropped_image_path[0]
         predictions.append([predict(model, cropped_image_path[0]), cropped_image_path[1]])
         
     
     # 4. Return results
-    analysis_results = {'result': 'Analysis complete', 'image_path': image_path, 'predictions': predictions}
+    # analysis_results = {'result': 'Analysis complete', 'originalImagePath': image_path, 'predictions': predictions, 'analyzedImagePath': all_cropped_images}
+    analysis_results = {
+        'result': 'Analysis complete',
+        'originalImagePath': image_path,
+        'predictions': predictions,
+        'analyzedImagePath': all_cropped_images
+    }
     return jsonify(analysis_results)
+     
+# Serve original images route
+@app.route('/images/<path:filename>')
+def serve_original_image(filename): 
+    return send_from_directory(os.path.join('/home/nick-kuijpers/Documents/Railnova/data/data_default_processed/'), filename)
 
+# Serve cropped images route
+@app.route('/cropped_images/<path:filename>')
+def serve_cropped_image(filename): 
+    return send_from_directory('/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/', filename)
 
 @app.route('/send-feedback', methods=['POST'])
 def send_feedback():
     try:
         data = request.json
-        confirmation = data.get('confirmation')
+        confirmations = data.get('confirmations')
         analysis_data = data.get('analysisData')
 
         # Save the updated data to a JSON file
@@ -58,7 +74,7 @@ def send_feedback():
             os.makedirs(feedback_dir)
         feedback_file = os.path.join(feedback_dir, 'feedback.json')
         with open(feedback_file, 'w') as f:
-            json.dump({'confirmation': confirmation, 'analysis_data': analysis_data}, f)
+            json.dump({'confirmations': confirmations, 'analysis_data': analysis_data}, f)
 
         return jsonify({'message': 'Feedback received successfully'})
     except Exception as e:
