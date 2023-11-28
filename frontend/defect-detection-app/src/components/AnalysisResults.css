@@ -29,7 +29,8 @@
   
   /* Set specific size for the original image if needed */
   .image-container img {
-    max-width: 80%; /* Adjust the percentage based on your design */
+    max-width: 70%; /* Adjust the percentage based on your design */
+    height: 70%;
   }
   
   /* Set specific size for the analyzed images */

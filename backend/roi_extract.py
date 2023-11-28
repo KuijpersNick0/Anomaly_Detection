@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # image_path
-img_path="../data/data_default_processed/2.E.4_G141 - 49F27B2584_Bottom_PP1.jpg"
+img_path="../../data/data_default_processed/2.F.2_G210 - 3E9B85219F_Bottom_PP1.jpg"
 
 # read image
 img_raw = cv2.imread(img_path)
@@ -37,8 +37,22 @@ print(ROIs)
 # crop_component = "J703"
 # crop_component = "U7"
 # crop_component = "J703_J702"
-crop_component = "J702"
+# crop_component = "J702"
 
+# crop_component = "U101"
+# crop_component = "Q400"
+# crop_component = "C401"
+# crop_component = "L400"
+# crop_component = "C408"
+# crop_component = "L500"
+# crop_component = "C525"
+# crop_component = "C526"
+# crop_component = "Q204"
+# crop_component = "U4"
+
+# crop_component = "U604"
+# crop_component = "U7"
+crop_component = "J703"
 
 #loop over every bounding box save in array "ROIs"
 for rect in ROIs:
@@ -54,7 +68,7 @@ for rect in ROIs:
     cv2.imshow("crop"+str(crop_component),img_crop)
 
     #save cropped image 
-    output_folder = '../data/template_images'
+    output_folder = '../../data/template_images/area_extraction_templates/test/'
     output_path = os.path.join(output_folder, str(crop_component) + '.jpg')
     cv2.imwrite(output_path , img_crop) 
 
