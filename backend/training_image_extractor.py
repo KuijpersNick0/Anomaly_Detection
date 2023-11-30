@@ -252,9 +252,11 @@ def process_images(all_files, df_main_board):
     # bottom pp1 3:4
     # bottom pp2 5:6
 
-    # Probleme 4:5, 6:7 top U500 out of bound alors que très peu bougé.
+    # Probleme 6:7 top U500 out of bound alors que très peu bougé.
 
-    for a_pic in all_files[10:11]:
+    # top pp1 10:11
+
+    for a_pic in all_files[6:7]:
         print(a_pic['path'])
         status_bar.update() 
         PP1 = False
@@ -275,18 +277,27 @@ def process_images(all_files, df_main_board):
             # statement to filter out scores that are below a certain threshold.
 
             case 'top':    
-                image, pattern_check_gray_J2 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/J2.jpg') 
+                image, pattern_check_gray_BT100 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/BT100.jpg')
                 _, pattern_check_gray_J704 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/J704.jpg')
-                _, pattern_check_gray_BT100 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/BT100.jpg')
-                matched_result_J2 = perform_template_matching_with_roi(image, pattern_check_gray_J2, (2500, 3000), (8000, 6200))
-                matched_result_J704 = perform_template_matching_with_roi(image, pattern_check_gray_J704, (100, 1500), (3000, 5000))
                 matched_result_BT100 = perform_template_matching_with_roi(image, pattern_check_gray_BT100, (4500, 800), (9000, 5000))
-                if (matched_result_J2[1] < 4500): 
+                matched_result_J704 = perform_template_matching_with_roi(image, pattern_check_gray_J704, (100, 1500), (3000, 5000))
+                if (matched_result_BT100[1] < 2000): 
                     PP1 = True
-                
-                # Matrice de transfo sur base du matching de 3 composants
-                transformation_matrix = fit_results(matched_result_J2, matched_result_J704, matched_result_BT100, "J2_1", "J704_1", "BT100_1", df_main_board) 
-                process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix)   
+                    _, pattern_check_gray_U701 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U701.jpg') 
+                    matched_result_U701 = perform_template_matching_with_roi(image, pattern_check_gray_U701, (100, 3000), (4000, 8000))
+                    
+                    # Matrice de transfo sur base du matching de 3 composants
+                    transformation_matrix = fit_results(matched_result_U701, matched_result_J704, matched_result_BT100, "U701_1", "J704_1", "BT100_1", df_main_board) 
+                    process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix)   
+                else :
+                    print("PP2")
+                    _, pattern_check_gray_U500 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U500.jpg') 
+                    matched_result_U500 = perform_template_matching_with_roi(image, pattern_check_gray_U500, (6500, 700), (10000, 3200))
+
+                    # Matrice de transfo sur base du matching de 3 composants
+                    transformation_matrix = fit_results(matched_result_U500, matched_result_J704, matched_result_BT100, "U500_1", "J704_1", "BT100_1", df_main_board) 
+                    process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix)   
+
             
             case 'bottom':
                 image, pattern_check_gray_U604 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U604.jpg') 

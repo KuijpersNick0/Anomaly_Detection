@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # image_path
-img_path="../../data/data_default_processed/2.F.2_G296 - 5EF56B3888_Top_PP1.jpg"
+img_path="../../data/data_default_processed/2.F.2_G156 - F2BFB6528B_Top_PP1.jpg"
 
 # read image
 img_raw = cv2.imread(img_path)
@@ -20,7 +20,7 @@ print(ROIs)
 
 #counter to save image with different name
 # crop_component = "J2"
-# crop_component = "U500"
+crop_component = "U500"
 # crop_component = "U600"
 # crop_component = "U701"
 # crop_component = "2F3_U904Ux"
@@ -56,7 +56,7 @@ print(ROIs)
 
 # crop_component = "MeasurePoint"
 
-crop_component = "U904U1"
+# crop_component = "U904U1"
 
 #loop over every bounding box save in array "ROIs"
 for rect in ROIs:
