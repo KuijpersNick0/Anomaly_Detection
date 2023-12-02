@@ -26,3 +26,11 @@ The extracted component placements are passed through a Convolutional Neural Net
 - OpenCV (CV2)
 - AWS SageMaker
 - Pandas
+
+## Contributors
+Kuijpers Nick (@kuijpers2nick@gmail.com)
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Feel free to contribute, report issues, or suggest improvements. Detect anomalies in PCB images effectively and contribute to ensuring high-quality PCB production !
