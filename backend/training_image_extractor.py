@@ -10,19 +10,16 @@ from tqdm.notebook import tqdm
 from datetime import datetime 
 
 import numpy as np 
-import cv2   
+import cv2    
+ 
+from PIL import Image
+
 
 # bottom_pp1 = ["U600_1", "U608_1", "Q102_1", "U100_1", "U101_1", "Q400_1", "C401_1", "L400_1","C408_1", "L500_1", "C525_1", "C526_1", "Q204_1", "U4_1"]
 
-#  Import du csv generer de clean_csv.ipynb
-df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F2.csv')
-# df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F3.csv')
-# df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2E4.csv')
-df_top = df_main_board[df_main_board['Layer'] == 'TopLayer'].copy() 
-
 # 2F2 files
-main_path = Path('../../data/data_default_processed/')
-prog = re.compile(r'2\.F\.2_G(\d+)\s*-\s*([\w\s]+[\w\s]*)_PP(\d+)\.jpg')
+# main_path = Path('../../data/data_default_processed/')
+# prog = re.compile(r'2\.F\.2_G(\d+)\s*-\s*([\w\s]+[\w\s]*)_PP(\d+)\.jpg')
 
 # 2F3 files
 # main_path = Path('../../data/data_default_processed/')
@@ -32,23 +29,24 @@ prog = re.compile(r'2\.F\.2_G(\d+)\s*-\s*([\w\s]+[\w\s]*)_PP(\d+)\.jpg')
 # main_path = Path('../../data/data_default_processed/')
 # prog = re.compile(r'2\.E\.4_G(\d+)\s*-\s*([\w\d]+)_([\w\d]+)_PP(\d+)\.jpg')
 
-counter = -1
-all_files = []
-for file_path in main_path.glob('2.F.2*.jpg'):
-    file_name = file_path.name
-    # print(file_name)
-    match = prog.match(file_name)
+# counter = -1
+# all_files = []
+# for file_path in main_path.glob('2.F.2*.jpg'):
+#     file_name = file_path.name
+#     # print(file_name)
+#     match = prog.match(file_name)
     
-    if match: 
-        board_id = int(match.group(1))
-        orientation = match.group(2)
-        photo_id = int(match.group(3))
+#     if match: 
+#         board_id = int(match.group(1))
+#         orientation = match.group(2)
+#         photo_id = int(match.group(3))
         
-        all_files.append({'id': board_id, 'path': str(file_path), 'orientation': orientation, 'photo_id': photo_id})
+#         all_files.append({'id': board_id, 'path': str(file_path), 'orientation': orientation, 'photo_id': photo_id})
 
-print(len(all_files))
+# print(len(all_files))
 
-output_folder = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F2'
+# output_folder = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F2'
+
 # Define the template matching method
 def get_matching_method():
     methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
@@ -106,8 +104,8 @@ def perform_template_matching_with_roi(image, pattern_check_gray, roi_top_left, 
     bottom_right = (top_left[0] + w, top_left[1] + h)
 
     # # Draw a rectangle around the matched area in the original image
-    cv2.rectangle(gray, (top_left[0] + roi_top_left[0], top_left[1] + roi_top_left[1]),
-                (bottom_right[0] + roi_top_left[0], bottom_right[1] + roi_top_left[1]), (0, 255, 0), 2)
+    # cv2.rectangle(gray, (top_left[0] + roi_top_left[0], top_left[1] + roi_top_left[1]),
+    #             (bottom_right[0] + roi_top_left[0], bottom_right[1] + roi_top_left[1]), (0, 255, 0), 2)
 
     # Centering the matched result on component and scaling
     matched_result = [(top_left[0] + roi_top_left[0] + (pattern_check_gray.shape[1]/2)), (top_left[1] + roi_top_left[1] + (pattern_check_gray.shape[0]/2))]
@@ -147,9 +145,10 @@ def fit_results(matched_result_comp1, matched_result_comp2, matched_result_comp3
 
     return transformation_matrix
 
-def process_components(image, components_to_process, df_main_board, transformation_matrix, board_id, orientation):
-    for component in components_to_process:
-        # Get the component's X and Y coordinates from the CSV file
+def process_components(image, components_to_process, df_main_board, transformation_matrix, board_id, orientation, top_folder): 
+    for component in components_to_process: 
+        
+        #  Get the component's X and Y coordinates from the CSV file
         component_data = df_main_board[df_main_board["Designator"] == component]
         x = component_data['Ref-X(mm)'].values[0]
         y = component_data['Ref-Y(mm)'].values[0]
@@ -167,40 +166,32 @@ def process_components(image, components_to_process, df_main_board, transformati
         Width = int(pattern_check_component.shape[1] / 2)
         Height = int(pattern_check_component.shape[0] / 2)
 
-        cv2.rectangle(image, (int(new_camera_point[0]) - Width, int(new_camera_point[1]) - Height),
-                      (int(new_camera_point[0]) + Width, int(new_camera_point[1]) + Height), (255, 0, 0),
-                      5, 8, 0)
+        # cv2.rectangle(image, (int(new_camera_point[0]) - Width, int(new_camera_point[1]) - Height),
+        #               (int(new_camera_point[0]) + Width, int(new_camera_point[1]) + Height), (255, 0, 0),
+        #               5, 8, 0)
 
         # Define the region of interest (ROI) coordinates
-        roi_top_left = (int(new_camera_point[0]) - Width, int(new_camera_point[1]) - Height)
-        roi_bottom_right = (int(new_camera_point[0]) + Width, int(new_camera_point[1]) + Height)
+        roi_top_left = (int(new_camera_point[0]) - Width -10, int(new_camera_point[1]) - Height -10)
+        roi_bottom_right = (int(new_camera_point[0]) + Width +10, int(new_camera_point[1]) + Height +10)
 
-        print(roi_top_left, roi_bottom_right)
-
-        # Check if ROI is within image bounds
-        if (0 <= roi_top_left[0] < image.shape[1] and 0 <= roi_top_left[1] < image.shape[0] and
-                0 <= roi_bottom_right[0] < image.shape[1] and 0 <= roi_bottom_right[1] < image.shape[0]):
-
-            # Extract the region of interest (ROI) corresponding to the rectangle
-            roi = image[roi_top_left[1]:roi_bottom_right[1], roi_top_left[0]:roi_bottom_right[0]]
-            
-            # Create a unique filename for each component
-            # filename = f'{output_folder}/image_matched_2F2_{component}_{orientation}_{board_id}.jpg'
-
-            # # Save the ROI with the rectangle
-            # cv2.imwrite(filename, roi)
-        else:
-            print(f"Warning: ROI for component {component} is outside image bounds.")
+        # print(roi_top_left, roi_bottom_right)
+ 
+        # Extract the region of interest (ROI) corresponding to the rectangle
+        roi = image[roi_top_left[1]:roi_bottom_right[1], roi_top_left[0]:roi_bottom_right[0]]
+        
+        save_and_check(roi, modified_comp_string, board_id, orientation, top_folder)
     
-    cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)  
-    cv2.imshow("Display window", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)  
+    # cv2.imshow("Display window", image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     return image
 
 # Process the matched results and create component rectangles
-def process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix): 
+def process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix, top_folder): 
+    # Process components and draw rectangles
+    components_to_process = []  # Define components_to_process list
     match orientation:
         case 'top':
             if PP1: 
@@ -217,18 +208,41 @@ def process_matched_results(image, df_main_board, orientation, board_id, PP1, tr
                 components_to_process = ["U901AL_1", "U901AH_1"] 
             
         case _:
-            print("Unknown orientation.")
+            print("Unknown orientation.") 
 
-    # Process components and draw rectangles
-    image = process_components(image, components_to_process, df_main_board, transformation_matrix, board_id, orientation)
-    # image = process_all_components(image, df_main_board, transformation_matrix, board_id, orientation)
-    # Save the image with the rectangles
-    # cv2.imwrite(f'all_images_with_match/image_matched_2F2_{board_id}_{orientation}.jpg', image)
+    image = process_components(image, components_to_process, df_main_board, transformation_matrix, board_id, orientation, top_folder) 
+
+
+def save_and_check(roi, component, board_id, orientation, top_folder): 
+    # Read the defects CSV file
+    defects_df = pd.read_csv("/home/nick-kuijpers/Documents/Railnova/data/default_excell/Default_V2.csv")
+    
+    parts = top_folder.split('.') 
+    # Remove empty parts and concatenate them
+    top_folder = ''.join(parts)  
+
+    # Check if the component is "bad"
+    is_bad = (defects_df["Version"] == top_folder) & (defects_df["ID"] == board_id) & (defects_df["Designator"] == component)
+
+    if is_bad.any():
+        # Save the component in the "bad" folder
+        folder_name = f"/home/nick-kuijpers/Documents/Railnova/data/CNN_images/Run2/{component}_bad"
+    else:
+        # Save the component in the normal folder
+        folder_name = f"/home/nick-kuijpers/Documents/Railnova/data/CNN_images/Run2/{component}"
+    
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    
+    # Save the image in the folder
+    cv2.imwrite(os.path.join(folder_name, f"{top_folder}_{component}_{board_id}_{orientation}.jpg"), roi)
+    print(f"Saved {component} in {folder_name}")
 
 
 # Main function for processing images
-def process_images(all_files, df_main_board): 
-    status_bar = tqdm(total=len(all_files))
+def process_images(image_path, df_main_board, orientation , clean_g_code, top_folder):  
+    
     # bottom pp1 3:4
     # bottom pp2 5:6
 
@@ -236,80 +250,138 @@ def process_images(all_files, df_main_board):
 
     # top pp1 10:11
 
-    for a_pic in all_files[0:1]:
-        print(a_pic['path'])
-        status_bar.update() 
-        PP1 = False
-        orientation = a_pic['orientation'] 
-        if 'top' in orientation.lower():
-            orientation = 'top'
-        else:
-            orientation = 'bottom'
+    PP1 = False 
+    
+    if 'top' in orientation.lower():
+        orientation = 'top'
+    else:
+        orientation = 'bottom'
+    
+    board_id = clean_g_code
+     
+    match orientation:
+        case 'top':    
+            image, pattern_check_gray_BT100 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/BT100.jpg')
+            _, pattern_check_gray_J704 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/J704.jpg')
+            matched_result_BT100 = perform_template_matching_with_roi(image, pattern_check_gray_BT100, (4500, 800), (9000, 5000))
+            matched_result_J704 = perform_template_matching_with_roi(image, pattern_check_gray_J704, (100, 1500), (3000, 5000))
+            if (matched_result_BT100[1] < 2000): 
+                PP1 = True
+                _, pattern_check_gray_U701 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/U701.jpg') 
+                matched_result_U701 = perform_template_matching_with_roi(image, pattern_check_gray_U701, (100, 3000), (4000, 8000))
+                
+                # Matrice de transfo sur base du matching de 3 composants
+                transformation_matrix = fit_results(matched_result_U701, matched_result_J704, matched_result_BT100, "U701_1", "J704_1", "BT100_1", df_main_board) 
+                process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix, top_folder)   
+            else :
+                # print("PP2")
+                _, pattern_check_gray_U500 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/U500.jpg') 
+                matched_result_U500 = perform_template_matching_with_roi(image, pattern_check_gray_U500, (6500, 700), (10000, 3200))
+
+                # Matrice de transfo sur base du matching de 3 composants
+                transformation_matrix = fit_results(matched_result_U500, matched_result_J704, matched_result_BT100, "U500_1", "J704_1", "BT100_1", df_main_board) 
+                process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix, top_folder)   
+
         
-        board_id = a_pic['id']
-      
-        print(orientation)
-        match orientation:
-            case 'top':    
-                image, pattern_check_gray_BT100 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/BT100.jpg')
-                _, pattern_check_gray_J704 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/J704.jpg')
-                matched_result_BT100 = perform_template_matching_with_roi(image, pattern_check_gray_BT100, (4500, 800), (9000, 5000))
-                matched_result_J704 = perform_template_matching_with_roi(image, pattern_check_gray_J704, (100, 1500), (3000, 5000))
-                if (matched_result_BT100[1] < 2000): 
-                    PP1 = True
-                    _, pattern_check_gray_U701 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U701.jpg') 
-                    matched_result_U701 = perform_template_matching_with_roi(image, pattern_check_gray_U701, (100, 3000), (4000, 8000))
-                    
-                    # Matrice de transfo sur base du matching de 3 composants
-                    transformation_matrix = fit_results(matched_result_U701, matched_result_J704, matched_result_BT100, "U701_1", "J704_1", "BT100_1", df_main_board) 
-                    process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix)   
-                else :
-                    print("PP2")
-                    _, pattern_check_gray_U500 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U500.jpg') 
-                    matched_result_U500 = perform_template_matching_with_roi(image, pattern_check_gray_U500, (6500, 700), (10000, 3200))
+        case 'bottom':
+            image, pattern_check_gray_U604_broad = load_images(image_path, '../../data/template_images/area_extraction_templates/U604.jpg') 
+            top_left, bottom_right = perform_broad_template_matching_with_roi(image, pattern_check_gray_U604_broad,(3000, 600),(7800, 7000))
+            _, pattern_check_gray_U604 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/U604.jpg')
+            matched_result_U604 = perform_template_matching_with_roi(image, pattern_check_gray_U604,top_left, bottom_right)
+            if (matched_result_U604[1] > 4000):
+                PP1 = True
+                _, pattern_check_gray_Q400 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/Q400.jpg')
+                matched_result_Q400 = perform_template_matching_with_roi(image, pattern_check_gray_Q400, (5000,500), (7700,3000))
+                _, pattern_check_gray_U100 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/U100.jpg')
+                matched_result_U100 = perform_template_matching_with_roi(image, pattern_check_gray_U100, (1000,300), (4100,3000))
+                
+                # Matrice de transfo sur base du matching de 3 composants
+                transformation_matrix = fit_results(matched_result_U604, matched_result_Q400, matched_result_U100, "U604_1", "Q400_1", "U100_1", df_main_board) 
+                process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix, top_folder) 
 
-                    # Matrice de transfo sur base du matching de 3 composants
-                    transformation_matrix = fit_results(matched_result_U500, matched_result_J704, matched_result_BT100, "U500_1", "J704_1", "BT100_1", df_main_board) 
-                    process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix)   
+            else:
+                # print("PP2")
+                _, pattern_check_gray_U707_Meas27 = load_images(image_path, '../../data/template_images/area_extraction_templates/U707_Meas27.jpg')
+                top_left, bottom_right = perform_broad_template_matching_with_roi(image, pattern_check_gray_U707_Meas27,(7500, 4500),(10500, 7200))
+                _, pattern_check_gray_MeasurePoint27 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/MeasurePoint.jpg')
+                matched_result_MeasurePoint27 = perform_template_matching_with_roi(image, pattern_check_gray_MeasurePoint27, top_left, bottom_right)
+                _, pattern_check_gray_MeasurePoint17 = load_images(image_path, '../../data/template_images/area_extraction_templates/smaller/MeasurePoint.jpg')
+                matched_result_MeasurePoint17 = perform_template_matching_with_roi(image, pattern_check_gray_MeasurePoint17, (4100, 4800), (6100, 8000))
+                
+                # Matrice de transfo sur base du matching de 3 composants
+                transformation_matrix = fit_results(matched_result_U604, matched_result_MeasurePoint27, matched_result_MeasurePoint17, "U604_1", "Meas27_1", "Meas17_1", df_main_board)
+                process_matched_results(image, df_main_board, orientation, board_id,PP1, transformation_matrix, top_folder)
+                
 
-            
-            case 'bottom':
-                image, pattern_check_gray_U604_broad = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/U604.jpg') 
-                top_left, bottom_right = perform_broad_template_matching_with_roi(image, pattern_check_gray_U604_broad,(3000, 600),(7800, 7000))
-                _, pattern_check_gray_U604 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U604.jpg')
-                matched_result_U604 = perform_template_matching_with_roi(image, pattern_check_gray_U604,top_left, bottom_right)
-                if (matched_result_U604[1] > 4000):
-                    PP1 = True
-                    _, pattern_check_gray_Q400 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/Q400.jpg')
-                    matched_result_Q400 = perform_template_matching_with_roi(image, pattern_check_gray_Q400, (5000,500), (7700,3000))
-                    _, pattern_check_gray_U100 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/U100.jpg')
-                    matched_result_U100 = perform_template_matching_with_roi(image, pattern_check_gray_U100, (1000,300), (4100,3000))
-                    
-                    # Matrice de transfo sur base du matching de 3 composants
-                    transformation_matrix = fit_results(matched_result_U604, matched_result_Q400, matched_result_U100, "U604_1", "Q400_1", "U100_1", df_main_board) 
-                    process_matched_results(image, df_main_board, orientation, board_id, PP1, transformation_matrix) 
-
-                else:
-                    print("PP2")
-                    _, pattern_check_gray_U707_Meas27 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/U707_Meas27.jpg')
-                    top_left, bottom_right = perform_broad_template_matching_with_roi(image, pattern_check_gray_U707_Meas27,(7500, 4500),(10500, 7200))
-                    _, pattern_check_gray_MeasurePoint27 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/MeasurePoint.jpg')
-                    matched_result_MeasurePoint27 = perform_template_matching_with_roi(image, pattern_check_gray_MeasurePoint27, top_left, bottom_right)
-                    _, pattern_check_gray_MeasurePoint17 = load_images(a_pic['path'], '../../data/template_images/area_extraction_templates/smaller/MeasurePoint.jpg')
-                    matched_result_MeasurePoint17 = perform_template_matching_with_roi(image, pattern_check_gray_MeasurePoint17, (4100, 4800), (6100, 8000))
-                    
-                    # Matrice de transfo sur base du matching de 3 composants
-                    transformation_matrix = fit_results(matched_result_U604, matched_result_MeasurePoint27, matched_result_MeasurePoint17, "U604_1", "Meas27_1", "Meas17_1", df_main_board)
-                    process_matched_results(image, df_main_board, orientation, board_id,PP1, transformation_matrix)
-                    
-
-            case _:
-                print("Unknown orientation.")
+        case _:
+            print("Unknown orientation.")
   
-    status_bar.close()
+
+# aAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+def iterate_images():
+    # Define the paths to the top folders
+    top_folders = ['2.F.2', '2.F.3', '2.E.4']
+
+    # Iterate through each top folder
+    for top_folder in top_folders:
+        # Get the full path to the top folder
+        top_folder_path = os.path.join('/home/nick-kuijpers/Documents/Railnova/data/data_default/new/', top_folder)
+        
+        # Import the corresponding csv file based on the top folder
+        if top_folder == '2.F.2':
+            df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F2.csv')
+        elif top_folder == '2.F.3':
+            df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F3.csv')
+        elif top_folder == '2.E.4':
+            df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2E4.csv')
+        else:
+            # Handle the case when the top folder is not recognized
+            print("Invalid top folder:", top_folder)
+            continue 
+
+        # Iterate through each board folder
+        for board_folder in sorted(os.listdir(top_folder_path)):
+            # Check if the board folder is a string representation of a board ID
+            if re.match('^G[0-9]{2,3}', board_folder): 
+                # Extract the G code from the board folder
+                g_code = re.search('^G[0-9]{2,3}', board_folder).group(0)
+                # Get the full path to the board folder
+                board_folder_path = os.path.join(top_folder_path, board_folder)
+                clean_g_code = g_code.strip('- ')
+                # print(clean_g_code)
+                # Iterate through the two valid orientations (Top, Bottom) and (top, bottom)
+                for orientation in ['Top', 'Bottom', 'top', 'bottom']:
+                    # Check if the orientation folder exists before accessing it
+                    if os.path.exists(os.path.join(board_folder_path, orientation)):
+                        # Get the full path to the orientation folder
+                        orientation_folder_path = os.path.join(board_folder_path, orientation)  
+                        # Iterate through each image file (PP_1, PP_2)
+                        for image_file in sorted(os.listdir(orientation_folder_path)): 
+                            # Check if the image file is a pp image
+                            if re.match(r'\b[ppPP]', image_file, flags=re.IGNORECASE): 
+                                # Get the full path to the image file
+                                image_path = os.path.join(orientation_folder_path, image_file) 
+                                print(f"Processing {image_path}") 
+
+                                process_images(image_path, df_main_board, orientation, clean_g_code, top_folder)
+
+                            else:
+                                # Skip the iteration if the image file is not a pp image 
+                                continue
+                    else:
+                        # Skip the iteration if the orientation folder doesn't exist
+                        continue
+            else:
+                # Skip the iteration if the board folder is not a string representation of a board ID
+                print("Board folder is not a string representation of a board ID")
+                continue
+
+
+
 
 def main():
-    process_images(all_files, df_main_board)
+    iterate_images()
 
 if __name__ == "__main__":
     main()
