@@ -33,7 +33,7 @@ idx2class = {v: k for k, v in img_dataset.class_to_idx.items()}
 num_classes = 17
 
 
-def predict(model, test_image_name):
+def predict(model, image_path):
     '''
     Function to predict the class of a single test image
     Parameters
@@ -44,8 +44,7 @@ def predict(model, test_image_name):
     
     transform = image_transforms['test']
 
-    test_image = Image.open(test_image_name)
-    # plt.imshow(test_image)
+    test_image = Image.open(image_path) 
     
     test_image_tensor = transform(test_image)
 

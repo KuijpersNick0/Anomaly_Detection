@@ -7,7 +7,7 @@ import json
 from tqdm.notebook import tqdm
 import pandas as pd
  
-default_csv_path = '../data/default_excell/Default.csv'
+default_csv_path = '../../data/default_excell/Default.csv'
 csv_file = pd.read_csv(default_csv_path)
 
 def find_match(image, template, threshold=0.20):
