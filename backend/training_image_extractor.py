@@ -3,49 +3,14 @@ import os
 import re
 import json
 from pathlib2 import Path
-import os.path 
-
-import pandas as pd
-from tqdm.notebook import tqdm
+import os.path  
+import pandas as pd 
 from datetime import datetime 
-
 import numpy as np 
 import cv2    
- 
 from PIL import Image
 
-
 # bottom_pp1 = ["U600_1", "U608_1", "Q102_1", "U100_1", "U101_1", "Q400_1", "C401_1", "L400_1","C408_1", "L500_1", "C525_1", "C526_1", "Q204_1", "U4_1"]
-
-# 2F2 files
-# main_path = Path('../../data/data_default_processed/')
-# prog = re.compile(r'2\.F\.2_G(\d+)\s*-\s*([\w\s]+[\w\s]*)_PP(\d+)\.jpg')
-
-# 2F3 files
-# main_path = Path('../../data/data_default_processed/')
-# prog = re.compile(r'2\.F\.3_G(\d+)_(\w+)_PP(\d+)\.jpg')
-
-# 2E4 files
-# main_path = Path('../../data/data_default_processed/')
-# prog = re.compile(r'2\.E\.4_G(\d+)\s*-\s*([\w\d]+)_([\w\d]+)_PP(\d+)\.jpg')
-
-# counter = -1
-# all_files = []
-# for file_path in main_path.glob('2.F.2*.jpg'):
-#     file_name = file_path.name
-#     # print(file_name)
-#     match = prog.match(file_name)
-    
-#     if match: 
-#         board_id = int(match.group(1))
-#         orientation = match.group(2)
-#         photo_id = int(match.group(3))
-        
-#         all_files.append({'id': board_id, 'path': str(file_path), 'orientation': orientation, 'photo_id': photo_id})
-
-# print(len(all_files))
-
-# output_folder = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F2'
 
 # Define the template matching method
 def get_matching_method():
@@ -314,15 +279,14 @@ def process_images(image_path, df_main_board, orientation , clean_g_code, top_fo
                 
 
         case _:
-            print("Unknown orientation.")
-  
+            print("Unknown orientation.") 
 
-# aAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
+# Stopped here
+# Processing /home/nick-kuijpers/Documents/Railnova/data/data_default/new/2.F.2/G48 - 6DCD535C35/Bottom/pp (1).jpg
 def iterate_images():
     # Define the paths to the top folders
     top_folders = ['2.F.2', '2.F.3', '2.E.4']
-
+    start = False
     # Iterate through each top folder
     for top_folder in top_folders:
         # Get the full path to the top folder
@@ -363,8 +327,10 @@ def iterate_images():
                                 # Get the full path to the image file
                                 image_path = os.path.join(orientation_folder_path, image_file) 
                                 print(f"Processing {image_path}") 
-
-                                process_images(image_path, df_main_board, orientation, clean_g_code, top_folder)
+                                if start == True:
+                                    process_images(image_path, df_main_board, orientation, clean_g_code, top_folder)
+                                if image_path=="/home/nick-kuijpers/Documents/Railnova/data/data_default/new/2.F.2/G54 - 5BC472F23B/top/pp (1).jpg":
+                                    start = True
 
                             else:
                                 # Skip the iteration if the image file is not a pp image 
@@ -376,9 +342,7 @@ def iterate_images():
                 # Skip the iteration if the board folder is not a string representation of a board ID
                 print("Board folder is not a string representation of a board ID")
                 continue
-
-
-
+ 
 
 def main():
     iterate_images()

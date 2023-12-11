@@ -1,32 +1,39 @@
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import json 
 import torch
 import pandas as pd
 import os
 
 from inference import predict
-from inference_image_extractor import main
+from inference_image_extractor_v2 import process_image
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route('/analyze', methods=['POST'])
+@cross_origin() 
 def analyze_image():
     predictions = []
-    data = request.get_json()
+    data = request.get_json() 
     image_path = data.get('path').get('path')
-    
+    orientation = data.get('path').get('orientation')
+    clean_g_code = data.get('path').get('board_id')
+    top_folder = data.get('path').get('top_folder')
+
+    print("Image path: ", image_path)
+    print("Orientation: ", orientation)
+    print("Clean G Code: ", clean_g_code)
+    print("Top folder: ", top_folder)
+
     # 1. Find image
     # folder_name = image_path.split('_')[0]
     base_path = '../../data/data_default_processed/'
     real_image_path = base_path + image_path
 
-    # 2. Execute images extraction
-        # To be modified
-        # Returns new image path (and bounding boxes?)
-    df_main_board = pd.read_csv('../../data/board_info_csv/processed/board_data_2F3.csv')
-    cropped_images_path = main(real_image_path, df_main_board)
+    # 2. Execute images extraction 
+    # Returns [image_path_cropped_to_component, component_name]
+    cropped_images_path = process_image(real_image_path, orientation, clean_g_code, top_folder)
 
     print(cropped_images_path)
 
@@ -36,7 +43,7 @@ def analyze_image():
     model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt', map_location='cpu')
     for cropped_image_path in cropped_images_path:
         print(cropped_image_path)
-        all_cropped_images.append(cropped_image_path[1])
+        all_cropped_images.append(cropped_image_path[0])
         # cropped_image_path[0] = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/' + cropped_image_path[0]
         predictions.append([predict(model, cropped_image_path[0]), cropped_image_path[1]])
         
@@ -58,8 +65,8 @@ def serve_original_image(filename):
 
 # Serve cropped images route
 @app.route('/cropped_images/<path:filename>')
-def serve_cropped_image(filename): 
-    return send_from_directory('/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/', filename)
+def serve_cropped_image(filename):  
+    return send_from_directory(os.path.join('/'), filename)
 
 @app.route('/send-feedback', methods=['POST'])
 def send_feedback():

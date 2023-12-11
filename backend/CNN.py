@@ -41,7 +41,7 @@ image_transforms = {
 }
 
 # number of classes
-num_classes = 17
+num_classes = 2
 
 # load pretrained resnet50, 152 bigger but better perf should try
 # Maybe try DenseNet after this :DenseNet161_Weights.IMAGENET1K_V1
@@ -58,7 +58,7 @@ resnet_50.fc = nn.Sequential(
     nn.Linear(fc_inputs, 256),
     nn.ReLU(),
     nn.Dropout(0.4), 
-    nn.Linear(256, 17), # since we have 17 classes
+    nn.Linear(256, 2), # since we have 2 classes
     nn.LogSoftmax(dim=1) # for using NLLLoss()
 )
 
@@ -210,62 +210,3 @@ plt.ylabel('Accuracy')
 plt.ylim(0,1)
 plt.savefig('_accuracy_curve.png')
 plt.show()
-
-# def computeTestSetAccuracy(model, loss_criterion):
-#     '''
-#     Function to compute the accuracy on the test set
-#     Parameters
-#         :param model: Model to test
-#         :param loss_criterion: Loss Criterion to minimize
-#     '''
-
-#     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-#     test_acc = 0.0
-#     test_loss = 0.0
-
-#     # Validation - No gradient tracking needed
-#     with torch.no_grad():
-
-#         # Set to evaluation mode
-#         model.eval()
-
-#         # Validation loop
-#         for j, (inputs, labels) in enumerate(test_data):
-#             inputs = inputs.to(device)
-#             labels = labels.to(device)
-
-#             # Forward pass - compute outputs on input data using the model
-#             outputs = model(inputs)
-
-#             # Compute loss
-#             loss = loss_criterion(outputs, labels)
-
-#             # Compute the total loss for the batch and add it to valid_loss
-#             test_loss += loss.item() * inputs.size(0)
-
-#             # Calculate validation accuracy
-#             ret, predictions = torch.max(outputs.data, 1)
-#             correct_counts = predictions.eq(labels.data.view_as(predictions))
-
-#             # Convert correct_counts to float and then compute the mean
-#             acc = torch.mean(correct_counts.type(torch.FloatTensor))
-
-#             # Compute total accuracy in the whole batch and add to valid_acc
-#             test_acc += acc.item() * inputs.size(0)
-
-#             print("Test Batch number: {:03d}, Test: Loss: {:.4f}, Accuracy: {:.4f}".format(j, loss.item(), acc.item()))
-
-#     # Find average test loss and test accuracy
-#     avg_test_loss = test_loss/test_data_size 
-#     avg_test_acc = test_acc/test_data_size
-
-#     print("Test accuracy : " + str(avg_test_acc))
-
-# computeTestSetAccuracy(trained_model, loss_func)
-
-def train_CNN(images):
-    return None
-
-def main(images):
-    return None

@@ -21,8 +21,8 @@ def rename_and_move_images(src_dir, dest_dir):
                 print(f"Renamed: {file} -> {new_name}")
 
 # Source and destination directories
-src_directory = "/home/nick-kuijpers/Documents/Railnova/data/data_default"
-dest_directory = "/home/nick-kuijpers/Documents/Railnova/data/data_default_processed"
+src_directory = "/home/nick-kuijpers/Documents/Railnova/data/data_default/New"
+dest_directory = "/home/nick-kuijpers/Documents/Railnova/data/data_images_processed"
 
 # Create the destination directory if it doesn't exist
 os.makedirs(dest_directory, exist_ok=True)

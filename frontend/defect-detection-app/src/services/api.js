@@ -2,13 +2,18 @@ const BASE_URL = 'http://localhost:5000'; // Adjust to Flask backend URL
 
 const api = {
   // Analyze an image and return the analysis results
-  analyzeImage: async (path) => {
+  analyzeImage: async (path, orientation, boardId, topFolder) => {
     const response = await fetch(`${BASE_URL}/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ path }), // Send the path in the request body
+      body: JSON.stringify({ 
+        path: path,
+        orientation: orientation,
+        board_id: boardId,
+        top_folder: topFolder,
+      }), // Send the image path and other parameters to the backend
     });
 
     if (!response.ok) {

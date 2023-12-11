@@ -3,6 +3,9 @@ import api from '../services/api';
 
 const UploadImage = ({ onFileUpload, onUploadComplete }) => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [orientation, setOrientation] = useState('');
+  const [boardId, setBoardId] = useState('');
+  const [topFolder, setTopFolder] = useState('');
 
   const handleFileChange = (event) => {
     const fileInput = event.target;
@@ -13,11 +16,28 @@ const UploadImage = ({ onFileUpload, onUploadComplete }) => {
     onUploadComplete(null);
   };
 
+  const handleOrientationChange = (event) => {
+    setOrientation(event.target.value);
+  };
+
+  const handleBoardIdChange = (event) => {
+    setBoardId(event.target.value);
+  };
+
+  const handleTopFolderChange = (event) => {
+    setTopFolder(event.target.value);
+  };
+
   const handleConfirm = async () => {
     if (selectedFile) {
       onFileUpload();
       try {
-        const response = await api.analyzeImage({ path: selectedFile.name });
+        const response = await api.analyzeImage({
+          path: selectedFile.name,
+          orientation: orientation,
+          board_id: boardId,
+          top_folder: topFolder,
+        });
         onUploadComplete(response);
       } catch (error) {
         console.error('Error analyzing image:', error);
@@ -28,6 +48,18 @@ const UploadImage = ({ onFileUpload, onUploadComplete }) => {
   return (
     <div>
       <input type="file" onChange={handleFileChange} />
+      <div>
+        <label>Orientation: </label>
+        <input type="text" value={orientation} onChange={handleOrientationChange} />
+      </div>
+      <div>
+        <label>Board ID: </label>
+        <input type="text" value={boardId} onChange={handleBoardIdChange} />
+      </div>
+      <div>
+        <label>Top Folder: </label>
+        <input type="text" value={topFolder} onChange={handleTopFolderChange} />
+      </div>
       {selectedFile && (
         <button onClick={handleConfirm}>Confirm</button>
       )}

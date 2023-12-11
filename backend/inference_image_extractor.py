@@ -223,6 +223,7 @@ def main(image_path, df_main_board):
         to_save_im_path = f'{output_folder}/cropped_images/{component[0]}.jpg'
         find_template_match(input_image_path, template_image_path, to_save_im_path)
         print("Saved cropped image to {}".format(to_save_im_path))
+        # le path de l'image cropped + le composant.
         cropped_images.append([to_save_im_path, component[0]])
     
     return cropped_images

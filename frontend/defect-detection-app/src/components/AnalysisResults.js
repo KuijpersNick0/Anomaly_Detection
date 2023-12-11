@@ -5,6 +5,8 @@ import './AnalysisResults.css';
 const AnalysisResults = ({ analysisData }) => {
     const [confirmations, setConfirmations] = useState(Array((analysisData?.analyzedImagePath || []).length).fill(null));
     
+    // pathToSaveImage = f'{output_folder}{top_folder}/{board_id}_{orientation}_{modified_comp_string}.jpg'
+
     const handleConfirmationChange = (value, index) => {
         const newConfirmations = [...confirmations];
         newConfirmations[index] = value;
@@ -40,7 +42,7 @@ const AnalysisResults = ({ analysisData }) => {
             <h2>Analyzed Images</h2>
             {(analysisData.analyzedImagePath || []).map((analyzedImage, index) => (
                 <div key={index} className="analyzed-image-container">
-                    <img src={`http://localhost:5000/cropped_images/${encodeURIComponent(analyzedImage)}.jpg`} alt={`Analyzed ${index + 1}`} />
+                    <img src={`http://localhost:5000/cropped_images/${encodeURIComponent(analyzedImage)}`} alt={`Analyzed ${index + 1}`} />
                     <pre>{JSON.stringify((analysisData.predictions || [])[index], null, 2)}</pre>
                     
                     {/* Confirmation dialog */}
