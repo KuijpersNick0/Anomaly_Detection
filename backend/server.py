@@ -11,6 +11,16 @@ from inference_image_extractor_v2 import process_image
 app = Flask(__name__)
 CORS(app)
 
+def clean_comp_name(component_name):
+    if component_name.startswith('U901'):
+        return 'U901'
+    elif component_name.startswith('U904'):
+        return 'U904'
+    elif component_name.startswith('U911'):
+        return 'U911'
+    else:
+        return component_name
+
 @app.route('/analyze', methods=['POST'])
 @cross_origin() 
 def analyze_image():
@@ -34,18 +44,22 @@ def analyze_image():
     # 2. Execute images extraction 
     # Returns [image_path_cropped_to_component, component_name]
     cropped_images_path = process_image(real_image_path, orientation, clean_g_code, top_folder)
-
-    print(cropped_images_path)
-
+  
     # 3. Load model and execute inference 
         # Should be on each image from step 2, append to a list the results
     all_cropped_images = []
-    model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt', map_location='cpu')
     for cropped_image_path in cropped_images_path:
         print(cropped_image_path)
-        all_cropped_images.append(cropped_image_path[0])
-        # cropped_image_path[0] = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/' + cropped_image_path[0]
-        predictions.append([predict(model, cropped_image_path[0]), cropped_image_path[1]])
+        component_name = cropped_image_path[1]
+        component_name = clean_comp_name(component_name)
+        if component_name == 'U500':
+            predictions.append(["U500", cropped_image_path[1]])
+        else:
+            model_string = '/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model_CNN_' + component_name + '.pt' 
+            model = torch.load(model_string, map_location='cpu')
+            all_cropped_images.append(cropped_image_path[0])
+            # cropped_image_path[0] = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/' + cropped_image_path[0]
+            predictions.append([predict(model, cropped_image_path[0], component_name), cropped_image_path[1]])
         
     
     # 4. Return results

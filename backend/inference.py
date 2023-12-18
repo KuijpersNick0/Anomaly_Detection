@@ -22,18 +22,7 @@ image_transforms = {
     ])
 }
 
-img_dataset = datasets.ImageFolder(
-    root = "../../data/CNN_images/Run1/",
-    transform = image_transforms["test"]
-)  
-
-idx2class = {v: k for k, v in img_dataset.class_to_idx.items()}
-
-# number of classes
-num_classes = 17
-
-
-def predict(model, image_path):
+def predict(model, image_path, component_name):
     '''
     Function to predict the class of a single test image
     Parameters
@@ -41,6 +30,16 @@ def predict(model, image_path):
         :param test_image_name: Test image
 
     '''
+    img_dataset_path = '../../data/CNN_images/Run2/CNN_' + component_name + '/'
+    img_dataset = datasets.ImageFolder(
+        root = img_dataset_path,
+        transform = image_transforms["test"]
+    )  
+
+    idx2class = {v: k for k, v in img_dataset.class_to_idx.items()}
+
+    # number of classes
+    num_classes = 2
     
     transform = image_transforms['test']
 
@@ -58,9 +57,9 @@ def predict(model, image_path):
         # Model outputs log probabilities
         out = model(test_image_tensor)
         ps = torch.exp(out)
-        topk, topclass = ps.topk(3, dim=1)
+        topk, topclass = ps.topk(2, dim=1)
         predictions = []
-        for i in range(3):
+        for i in range(2):
             # print("Prediction", i+1, ":", idx2class[topclass.cpu().numpy()[0][i]], ", Score: ", topk.cpu().numpy()[0][i])
             prediction = {
                 "class": idx2class[topclass.cpu().numpy()[0][i]],
@@ -82,7 +81,7 @@ def main():
     model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt', map_location='cpu')
 
     # Call the predict function with a test image
-    predict(model, '../../data/CNN_images/Run1/J2/J2_2F3_G12.jpg')
+    # predict(model, '../../data/CNN_images/Run1/J2/J2_2F3_G12.jpg')
 
 if __name__ == '__main__':
     main()
