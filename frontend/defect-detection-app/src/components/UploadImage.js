@@ -47,6 +47,8 @@ const UploadImage = ({ onFileUpload, onUploadComplete }) => {
 
   return (
     <div>
+      
+      <img src="https://www.railnova.eu/wp-content/uploads/2017/09/Railnova-logo-color-1.jpg" alt="Railnova logo" />
       <input type="file" onChange={handleFileChange} />
       <div>
         <label>Orientation: </label>

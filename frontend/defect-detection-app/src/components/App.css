@@ -1,0 +1,22 @@
+body {
+    margin: 0% 0% 0% 0%; 
+}
+
+h1 {
+    margin: 0%;
+    text-align: center; 
+}
+.Input {
+    background-color: #059DDE;
+    color: white;
+    padding-left: 1%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+.Input img {
+    display: block;
+    margin-left: auto;
+    margin-right: 5%;
+}
+     

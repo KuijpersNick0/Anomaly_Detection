@@ -1,51 +1,42 @@
-.analysis-results-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .image-container {
-    margin-bottom: 20px;
-    text-align: center; /* Center text content under the original image */
-  }
-  
-  .analyzed-images-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  
-  .analyzed-image-container {
-    margin: 0 10px;
-    text-align: center; /* Center text content under each analyzed image */
-  }
-  
-  /* Set the maximum width for the images */
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  /* Set specific size for the original image if needed */
-  .image-container img {
-    max-width: 70%; /* Adjust the percentage based on your design */
-    height: 70%;
-  }
-  
-  /* Set specific size for the analyzed images */
-  .analyzed-image-container {
-    width: 200px; /* Fixed width for all analyzed images */
-  }
-  
-  /* Optional: Add styles for prediction text and radio buttons */
-  .analyzed-image-container pre {
-    margin-top: 10px; /* Add some space between the image and prediction text */
-  }
-  
-  /* You can further style the radio buttons if needed */
-  .analyzed-image-container label {
-    display: block; /* Display each label on a new line */
-    margin-top: 5px; /* Add space between each label */
-  }
-  
+.container {
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  grid-template-rows: 1fr 1fr 1fr; 
+  gap: 0px 0px; 
+  grid-template-areas: 
+    "OriginalImage AnalysisResults AnalysisResults"
+    "Feedback AnalysisResults AnalysisResults" 
+    ". AnalysisResults AnalysisResults"; 
+}
+.OriginalImage { grid-area: OriginalImage; }
+.AnalysisResults {
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  grid-template-rows: 1fr 1fr 1fr; 
+  gap: 0px 0px; 
+  grid-template-areas: 
+    ". . ."
+    ". . ."
+    ". . ."; 
+  grid-area: AnalysisResults; 
+  margin-left: 1%;
+  margin-top: 1%;
+}
+
+.Feedback { grid-area: Feedback; }
+
+.OriginalImage img { 
+  max-width: 100%;
+  max-height: 100%; 
+}
+
+.AnalysisResults img { 
+  max-width: 100%;
+  max-height: 100%; 
+}
+ 
+
+.AnalysisResults div { 
+  max-width: 40%;
+  max-height: 40%;   
+}

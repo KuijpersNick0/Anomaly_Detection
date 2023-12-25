@@ -32,26 +32,26 @@ def predict(model, image_path, component_name):
     '''
     img_dataset_path = '../../data/CNN_images/Run2/CNN_' + component_name + '/'
     img_dataset = datasets.ImageFolder(
-        root = img_dataset_path,
-        transform = image_transforms["test"]
-    )  
+        root=img_dataset_path,
+        transform=image_transforms["test"]
+    )
 
     idx2class = {v: k for k, v in img_dataset.class_to_idx.items()}
 
     # number of classes
     num_classes = 2
-    
+
     transform = image_transforms['test']
 
-    test_image = Image.open(image_path) 
-    
+    test_image = Image.open(image_path)
+
     test_image_tensor = transform(test_image)
 
     if torch.cuda.is_available():
         test_image_tensor = test_image_tensor.view(1, 3, 224, 224).cuda()
     else:
         test_image_tensor = test_image_tensor.view(1, 3, 224, 224)
-    
+
     with torch.no_grad():
         model.eval()
         # Model outputs log probabilities
@@ -60,13 +60,20 @@ def predict(model, image_path, component_name):
         topk, topclass = ps.topk(2, dim=1)
         predictions = []
         for i in range(2):
-            # print("Prediction", i+1, ":", idx2class[topclass.cpu().numpy()[0][i]], ", Score: ", topk.cpu().numpy()[0][i])
+            score = float(topk.cpu().numpy()[0][i]) * 100
+            score = round(score, 2)
+            # print("Prediction", i+1, ":", idx2class[topclass.cpu().numpy()[0][i]], ", Score: ", score, "%")
             prediction = {
                 "class": idx2class[topclass.cpu().numpy()[0][i]],
-                "score": float(topk.cpu().numpy()[0][i])
+                "score": score
             }
             predictions.append(prediction)
-        return json.dumps(predictions)
+
+        # Convert predictions to strings
+        str_predictions = [f"{pred['class']}: {pred['score']}" for pred in predictions]
+
+        return str_predictions
+         
         
 
 # model = torch.load('/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model.pt') #GPU only

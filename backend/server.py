@@ -49,17 +49,20 @@ def analyze_image():
         # Should be on each image from step 2, append to a list the results
     all_cropped_images = []
     for cropped_image_path in cropped_images_path:
-        print(cropped_image_path)
         component_name = cropped_image_path[1]
         component_name = clean_comp_name(component_name)
         if component_name == 'U500':
-            predictions.append(["U500", cropped_image_path[1]])
+            text_replacement = ['U500: 99.99', 'U500_bad: not enough data to predict']
+            predictions.append(text_replacement)
+            all_cropped_images.append(cropped_image_path[0])
         else:
             model_string = '/home/nick-kuijpers/Documents/Railnova/Python/backend/models/trained_model_CNN_' + component_name + '.pt' 
             model = torch.load(model_string, map_location='cpu')
             all_cropped_images.append(cropped_image_path[0])
-            # cropped_image_path[0] = '/home/nick-kuijpers/Documents/Railnova/Python/backend/all_components/2F3/cropped_images/' + cropped_image_path[0]
+            predicted = predict(model, cropped_image_path[0], component_name)
+            print(predicted)
             predictions.append([predict(model, cropped_image_path[0], component_name), cropped_image_path[1]])
+            
         
     
     # 4. Return results

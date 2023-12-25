@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import UploadImage from './UploadImage';
 import LoadingScreen from './LoadingScreen';
 import AnalysisResults from './AnalysisResults';
+import './App.css'; 
 
 const App = () => {
   const [analysisData, setAnalysisData] = useState(null);
@@ -19,9 +20,11 @@ const App = () => {
 
   return (
     <div className="App">
-      <h1>Railnova PCB defect detection app</h1>
-
-      <UploadImage onFileUpload={handleFileUpload} onUploadComplete={handleAnalysisComplete} />
+      <div className="Input">
+        <h1>Railnova Defect Detection Application</h1>
+        <UploadImage onFileUpload={handleFileUpload} onUploadComplete={handleAnalysisComplete} />
+        
+      </div>
 
       <LoadingScreen loading={loading} />
 
